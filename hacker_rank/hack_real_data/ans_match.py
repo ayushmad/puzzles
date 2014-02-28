@@ -341,14 +341,22 @@ class input_reader:
 
 class Analyze_paragaph:
     def __init__(self, paragragh, split_marker = '.'):
-        self.my_tst = Tst();
+        self.my_tst = TST();
         self.id_base = 0;
         paragraph_lines  = self.split_based_on_marker(paragragh, split_marker);
-        self.paragragh_hash = {};
+        self.paragraph_hash = {};
         for line in paragraph_lines:
-            self.paragraph_lines[self.get_unique_id()] = line;
-            self.add_paragraph(line);
+            line = self.replace_punctuations(line);
+            unq_id = self.get_unique_id()
+            self.paragraph_hash[unq_id] = line;
+            self.add_line(line, unq_id);
         return;
+    
+    def replace_punctuations(self, line):
+        line.replace(",", " ");
+        line.replace(".", " ");
+        line  = line.lower();
+        return line;
 
     def get_unique_id(self):
         self.id_base += 1;
@@ -369,7 +377,7 @@ class Analyze_paragaph:
             This is where the experimentation of the algorithm.
             Algorithm Parse 1:
         '''
-        return self.trail_algo(questions);
+        return self.trail_algo(questions, answers);
 
     def trail_algo(self, questions, answers):
         '''
@@ -389,15 +397,118 @@ class Analyze_paragaph:
         return [answers[index] for index in ordered_answers];
 
     def score_word_on_lines(self, word):
-        for index in range(len(word), 0):
+        '''
+            word score are given between 0-1.
+            Score is given between 1.0 to zero and 
+            the score is decremented at each step and highest score for a id is kept;
+            score is decremented geometrically so that the score becomes finally zero.
+            Also the score has a regularity and matches for size smaller than 2.
+        '''
+        score = 1.0;
+        resulting_hash = {};
+        word = word.lower();
+        for rev_index in range(0, len(word)-2):
+            index = len(word) - rev_index ;
             sub_word = word[:index];
-        pass;
-    
-    def score_question_on_lines(self, question):
-        pass;
+            score -= float(1/(index*(index-1)));
+            matched_set = self.my_tst.match_prefix(word);
+            for ids in matched_set:
+                if not resulting_hash.has_key(ids):
+                    resulting_hash[ids] = score;
+        return resulting_hash;
 
-    def score_answer_on_lines(self, answer):
-        pass;
+    def score_question_on_lines(self, question):
+        '''
+            Currently line attached score is just additive.
+            As longer sentences get an advantage we do not want to remove keywords.
+            Even smaller matches should get some advantage.
+        '''
+        q_list = question.split();
+        q_count  = len(q_list);
+        sentence_score = {};
+        for q_w in q_list:
+            score_res = self.score_word_on_lines(q_w);
+            for sel_id in score_res.keys():
+                if not sentence_score.has_key(sel_id):
+                    sentence_score[sel_id] = 0;
+                sentence_score[sel_id] += float(score_res[sel_id]/len(q_list));
+        return sentence_score;
+                
+        
+
+    def score_answer_on_lines(self, answer): 
+        '''
+            Match answers
+        '''
+        a_list = answer.split();
+        a_count  = len(a_list);
+        sentence_score = {};
+        for a_w in a_list:
+            score_res = self.score_word_on_lines(a_w);
+            for sel_id in score_res.keys():
+                if not sentence_score.has_key(sel_id):
+                    sentence_score[sel_id] = 0;
+                sentence_score[sel_id] += score_res[sel_id];
+        return sentence_score;
+        
 
     def max_matching(self, question_rating, answer_rating):
-        pass;
+        '''
+           Stupid matching is the first step implemented here.
+        '''
+        # creating answer line_mapping
+        print "coming hereh"
+        print question_rating;
+        print answer_rating;
+        line_hash = {};
+        line_keys = self.paragraph_hash.keys();
+        index = 0;
+        for ans_hash in answer_rating:
+            for line_key in line_keys:
+                if ans_hash.has_key(line_key):
+                    if not line_hash.has_key(line_key):
+                        line_hash[line_key] = [];
+                    line_hash[line_key].append((index, ans_hash[line_key]));
+            index += 1;
+        # Creating question line matching
+        q_a_list = [];
+        index = 0;
+        for q_rating in question_rating:
+            for line_id in q_rating.keys():
+                for ele in line_hash[line_id]:
+                    q_a_list.append((index, 
+                                     ele[0], 
+                                     q_rating[line_id] + ele[0]));
+            index += 1
+        q_a_list.sort(key = lambda x: x[2], reverse=True);
+        print "---------------------------------------"
+        print q_a_list;
+
+        # We may need to change to some other model but lets use this now
+        q_a_answers = [];
+        a_selected = [];
+        q_selected = [];
+        for q_a in q_a_list:
+            if q_a[0] not in q_selected: 
+                if q_a[1] not in a_selected:
+                    q_selected.append(q_a[0]);
+                    a_selected.append(q_a[1]);
+                    q_a_answers.append((q_a[0], q_a[1]));
+        q_a_answers.sort(key = lambda x: x[0]);
+        return [q[1] for q in q_a_answers];
+
+
+
+
+
+if __name__ == "__main__":
+    inp_stream = open('test.txt', 'r');
+    paragraph = inp_stream.readline().strip(); 
+    sol = Analyze_paragaph(paragraph);
+    q_list = [];
+    index = 0;
+    while index < 5:
+        q_list.append(inp_stream.readline().strip()[:-1]);
+        index += 1;
+    a_list = inp_stream.readline().strip().split(';');
+    print "\n".join(sol.associate_quesiton_with_answers(q_list, a_list));
