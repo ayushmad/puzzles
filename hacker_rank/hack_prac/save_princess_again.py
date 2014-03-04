@@ -114,13 +114,13 @@ def print_path(path_stack):
         cur_pos = next_pos;
     return move.strip();
 
-def nextMove(n,r,c,grid):
+def displayPathtoPrincess(n,grid):
     path_find = PathFinder(grid,
-                    (r, c),
+                    find_point("m", grid),
                     find_point("p", grid));
     
-    path = path_find.do_dfs();
-    return print_path(path[-2:]);
+    print print_path(path_find.do_dfs());
+    return;
     
 """
 if __name__ == "__main__" :
@@ -130,11 +130,13 @@ if __name__ == "__main__" :
     displayPathtoPrincess(grid_size, grid);    
 """ 
 
+#print all the moves here
 # Tail starts here
-n = input()
-r,c = [int(i) for i in raw_input().strip().split()]
-grid = []
-for i in xrange(0, n):
-    grid.append(raw_input())
+m = input()
 
-print nextMove(n,r,c,grid)
+grid = []
+for i in xrange(0, m):
+    grid.append(list(raw_input().strip()))
+
+displayPathtoPrincess(m,grid)
+
