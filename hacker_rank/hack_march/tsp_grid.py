@@ -86,37 +86,39 @@ dp_table[1] = [float('inf')]*cell_count;
 dp_table[1][0] = 0;
 
 dp_table = defaultdict(lambda: [float('inf')]*(cell_count), dp_table);
-
-for l in range(2, cell_count+1):
-    l_count = 0;
-    max_l_count = nCk(cell_count-1, l-1);
-    cur_grid = (int(pow(2, l-1)-1) << 1) + 1;
-    while l_count < max_l_count:
-        cur_grid_bin = bin(cur_grid)[2:][::-1][1:];
-        dest = 2;
-        node_count = 1;
-        for b in cur_grid_bin:
-            if b == '1':
-                source_grid = cur_grid & ~(dest);
-                neighbours = neighbours_of_dest_in(source_grid, dest, node_count);
-                min_val = float('inf');
-                for neighbour in neighbours:
-                    min_val = min(dp_table[source_grid][neighbour] + edges[node_count][neighbour], 
-                                  min_val);
-                dp_table[cur_grid][node_count] = min_val;
-            dest = dest << 1;
-            node_count += 1;
-        l_count += 1;
-        cur_num = cur_grid >> 1;
-        temp_u = cur_num &(-cur_num);
-        temp_v = cur_num + temp_u;
-        cur_grid = ((temp_v + (((temp_v^cur_num)/temp_u) >> 2)) << 1) + 1;
-cover_all = int(pow(2, cell_count))-1;
-neighbours = neighbours_of_dest_in(cover_all&~(1), 1, 0);
-min_val = float('inf');
-for neighbour in neighbours:
-    min_val = min(min_val, dp_table[cover_all][neighbour] + edges[neighbour][0]);
-if min_val < float('inf'):
-    print min_val;
-else:
+if row % 2  == 1 and col % 2 == 1:
     print 0;
+else:
+    for l in range(2, cell_count+1):
+        l_count = 0;
+        max_l_count = nCk(cell_count-1, l-1);
+        cur_grid = (int(pow(2, l-1)-1) << 1) + 1;
+        while l_count < max_l_count:
+            cur_grid_bin = bin(cur_grid)[2:][::-1][1:];
+            dest = 2;
+            node_count = 1;
+            for b in cur_grid_bin:
+                if b == '1':
+                    source_grid = cur_grid & ~(dest);
+                    neighbours = neighbours_of_dest_in(source_grid, dest, node_count);
+                    min_val = float('inf');
+                    for neighbour in neighbours:
+                        min_val = min(dp_table[source_grid][neighbour] + edges[node_count][neighbour], 
+                                      min_val);
+                    dp_table[cur_grid][node_count] = min_val;
+                dest = dest << 1;
+                node_count += 1;
+            l_count += 1;
+            cur_num = cur_grid >> 1;
+            temp_u = cur_num &(-cur_num);
+            temp_v = cur_num + temp_u;
+            cur_grid = ((temp_v + (((temp_v^cur_num)/temp_u) >> 2)) << 1) + 1;
+    cover_all = int(pow(2, cell_count))-1;
+    neighbours = neighbours_of_dest_in(cover_all&~(1), 1, 0);
+    min_val = float('inf');
+    for neighbour in neighbours:
+        min_val = min(min_val, dp_table[cover_all][neighbour] + edges[neighbour][0]);
+    if min_val < float('inf'):
+        print min_val;
+    else:
+        print 0;
