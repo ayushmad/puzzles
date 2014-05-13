@@ -15,14 +15,14 @@ class Die:
         Input:- Die configuration
         """
         self.side_count = len(die_configuration);
-        if sum(die_configuration) < 1.0:
-            raise Exception("Invalid Die not complete configuration");
         # Storing probabilities as a sum count
         self.limiting_configuration = [];
         base_sum = 0.0;
         for entry in die_configuration:
             base_sum += entry;
             self.limiting_configuration.append(base_sum);
+
+        print self.limiting_configuration;
             
         self.previous_roll = None;
 

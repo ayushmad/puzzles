@@ -69,7 +69,7 @@ class Mark_Zoid:
 
     def next_task(self):
         if self.state == "SEARCH_TASK":
-            ### identify the next block to clean
+            # identify the next block to clean
             self.target_block = self.find_nearest_dirty_block();
             if self.target_block != (-1, -1):
                 self.state = "REACH_BLOCK";
